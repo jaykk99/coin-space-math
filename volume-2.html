@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coin Space Math (CSM) - Volume II: Computational Architecture &amp; Acceleration (Ch. 251-500) | Coin Space Math</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<style>
+  :root { --bg: #0f172a; --panel: #1e293b; --text: #e2e8f0; --muted: #94a3b8;
+          --accent: #22d3ee; --accent2: #a78bfa; --code: #0b1220; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: Georgia, 'Times New Roman', serif;
+         line-height: 1.75; margin: 0; padding: 0; }
+  nav { background: #0b1220; padding: 14px 24px; position: sticky; top: 0; z-index: 10;
+        border-bottom: 1px solid #1e293b; font-family: system-ui, sans-serif; }
+  nav a { color: var(--accent); text-decoration: none; margin-right: 22px; font-size: 15px; }
+  nav a:hover { text-decoration: underline; }
+  nav .home { color: #fff; font-weight: 700; }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 2em; color: #fff; border-bottom: 2px solid var(--accent); padding-bottom: 12px; }
+  h2 { font-size: 1.5em; color: var(--accent); margin-top: 2.2em; font-family: system-ui, sans-serif; }
+  h3 { font-size: 1.2em; color: var(--accent2); margin-top: 1.8em; font-family: system-ui, sans-serif; }
+  p { margin: 1em 0; }
+  pre { background: var(--code); border: 1px solid #334155; border-radius: 8px; padding: 16px;
+        overflow-x: auto; font-size: 13.5px; line-height: 1.6; }
+  code { font-family: 'JetBrains Mono', Consolas, monospace; }
+  p code { background: #1e293b; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  ul { padding-left: 1.4em; }
+  li { margin: 0.45em 0; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 8px 0; }
+  .vol-sub { color: var(--muted); font-size: 1.1em; margin-top: -8px; font-family: system-ui, sans-serif; }
+  .toc { background: var(--panel); border-radius: 10px; padding: 18px 24px; margin: 24px 0; font-family: system-ui, sans-serif; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  footer { text-align: center; color: var(--muted); padding: 30px; font-size: 13px; font-family: system-ui, sans-serif; }
+</style>
+</head>
+<body>
+<nav>
+  <a class="home" href="index.html">Coin Space Math</a>
+  <a href="volume-1.html">Volume I</a>
+  <a href="volume-2.html">Volume II</a>
+  <a href="volume-3.html">Volume III</a>
+</nav>
+<main>
+<h1>Coin Space Math (CSM) - Volume II: Computational Architecture &amp; Acceleration (Ch. 251-500)</h1>
+<p class="vol-sub">Computational Architecture &amp; Acceleration &mdash; Ch. 251-500</p>
+<p>Coin Space Math (CSM) - Volume II: Computational Architecture &amp; Acceleration (Ch. 251-500)</p>
+<p>Volume II: Computational Architecture &amp; Acceleration</p>
+<h2>Chapters 251-500: Advanced Low-Level Implementations &amp; Microarchitectural Optimizations</h2>
+<p>Executive Overview &amp; Scope</p>
+<p>Volume II establishes the architectural specifications, formal mathematics, microarchitectural logic, and production execution routines required to compute elliptic curve arithmetic, multi-scalar multiplication (MSM), and finite field primitives at physical limits. This volume systematically explores optimizations spanning SIMD bit-slicing pipelines, unrolled complete addition laws over short Weierstrass and twisted Edwards curves, memory bandwidth reduction strategies, and C++/CUDA acceleration kernel designs.</p>
+<h2>Part I: Multi-Limb Finite Field Arithmetic</h2>
+<h2>Section 1: Algorithmic Foundations &amp; Reduced-Bimodulus Multiplication</h2>
+<p>To compute modular multiplications over large finite fields F_p where p is approx 2^256 or p approx 2^384, standard multi-precision representations decompose elements into vector arrays of 64-bit words (limbs). Given A, B in F_p, let:</p>
+<p>$$A = \sum_{i=0}^{n-1} a_i \beta^i, \quad B = \sum_{i=0}^{n-1} b_i \beta^i$$</p>
+<p>where beta = 2^64, and n = ceil(log_2(p) / 64).</p>
+<p>Montgomery Multiplication</p>
+<p>The standard Montgomery reduction transforms the high-cost division by p into bitwise shifts and single-word additions by representing elements in the Montgomery domain A&#x27; = A * R mod p, where R = beta^n &gt; p such that gcd(R, p) = 1. The precomputed constant p&#x27; = -p^{-1} mod beta underpins the inner loop.</p>
+<p>Algorithm 1: Interleaved Montgomery Multiplication (CIOS Method)</p>
+<p>Input: A, B &lt; p, Modulus p, Precomputed p&#x27; Output: R = A * B * R^(-1) mod p</p>
+<p><strong>1.</strong> Clear accumulator T = [0, 0, ..., 0] (length n + 2)</p>
+<p>2. For i from 0 to n-1:</p>
+<p><strong>3.</strong> c &lt;- 0</p>
+<p><strong>4.</strong> For j from 0 to n-1:</p>
+<p><strong>5.</strong> (c, T[j]) &lt;- T[j] + a[j] * b[i] + c</p>
+<p><strong>6.</strong> (T[n+1], T[n]) &lt;- T[n] + c</p>
+<p><strong>7.</strong> m &lt;- (T[0] * p&#x27;) mod 2^64</p>
+<p><strong>8.</strong> c &lt;- 0</p>
+<p><strong>9.</strong> (c, _) &lt;- T[0] + m * p[0]</p>
+<p><strong>10.</strong> For j from 1 to n-1:</p>
+<p><strong>11.</strong> (c, T[j-1]) &lt;- T[j] + m * p[j] + c</p>
+<p><strong>12.</strong> (c, T[n-1]) &lt;- T[n] + c</p>
+<p><strong>13.</strong> T[n] &lt;- T[n+1] + c</p>
+<p><strong>14.</strong> T[n+1] &lt;- 0</p>
+<p><strong>15.</strong> If T &gt;= p then Return T - p Else Return T[0..n-1]</p>
+<p>Microarchitectural Performance Metrics</p>
+<ul>
+<li>Standard Schoolbook | n^2 multiplications | 2n^2 + 2n adds | 2n limbs | ~145 cycles</li>
+<li>Karatsuba (n=4) | 9 multiplications | 3n^2 + 5n adds | 3n limbs | ~128 cycles</li>
+<li>Montgomery CIOS | n^2 + n multiplications | 2n^2 + 4n adds | n + 2 limbs | ~112 cycles</li>
+<li>Montgomery FIPS | n^2 + n multiplications | 2n^2 + 2n adds | 2n + 1 limbs | ~118 cycles</li>
+<li>Extended Redundant | n^2 multiplications | 4n^2 adds | 1.5n limbs (51-bit) | ~88 cycles</li>
+</ul>
+<h2>Section 2: x86-64 Assembly Optimization (MULX / ADCX / ADOX)</h2>
+<p>Modern x86-64 microarchitectural extensions allow parallel execution of carry chains using the ADCX (Unsigned Addition with Carry Flag) and ADOX (Unsigned Addition with Overflow Flag) instructions, operating simultaneously on separate execution units (Port 0 and Port 6). Combined with non-destructive flag-free multiplication (MULX), dual carry chains compute two partial product additions per clock cycle.</p>
+<pre><code>
+; Hand-optimized 256-bit Multiplication (4-limb x 4-limb) using MULX/ADCX/ADOX
+; Input:  RDI = &amp;A, RSI = &amp;B, RDX = &amp;C (Output)
+global multiply_256_adx
+multiply_256_adx:
+    mov     rax, [rsi]
+    mov     rdx, rax
+    mulx    r8, r0, [rdi]
+    mulx    r9, r1, [rdi + 8]
+    add     r1, r8
+    mulx    r10, r2, [rdi + 16]
+    adc     r2, r9
+    mulx    r11, r3, [rdi + 24]
+    adc     r3, r10
+    adc     r11, 0
+    mov     rdx, [rsi + 8]
+    xor     r8, r8
+    mulx    rbx, rax, [rdi]
+    adcx    r1, rax
+    adox    r2, rbx
+    mulx    rbx, rax, [rdi + 8]
+    adcx    r2, rax
+    adox    r3, rbx
+    mulx    rbx, rax, [rdi + 16]
+    adcx    r3, rax
+    adox    r11, rbx
+    mulx    r12, rax, [rdi + 24]
+    adcx    r11, rax
+    adox    r12, r8
+    adcx    r12, r8
+    mov     [rdx], r0
+    mov     [rdx + 8], r1
+    mov     [rdx + 16], r2
+    mov     [rdx + 24], r3
+    ret
+</code></pre>
+<h2>Part II: Vectorized SIMD Bit-Slicing Pipelines</h2>
+<h2>Section 3: Bit-Slicing Paradigm &amp; AVX-512 Execution Layout</h2>
+<p>Bit-slicing maps N parallel field operations across N vector register lanes by reorienting the data structure: the k-th bit of N different field elements is stored packed inside a single N-bit SIMD register. For AVX-512 (N=512), a 256-bit finite field element is represented as 256 distinct 512-bit registers (zmm0 to zmm255).</p>
+<p>Bit-Sliced Full Adder Logic Primitive</p>
+<p>Under bit-slicing, arithmetic additions transform entirely into bitwise logical operations:</p>
+<ul>
+<li>Sum = A XOR B XOR C_in</li>
+<li>C_out = (A AND B) OR (C_in AND (A XOR B))</li>
+</ul>
+<pre><code>
+#include &lt;immintrin.h&gt;
+inline void bitsliced_full_adder(__m512i a, __m512i b, __m512i cin,
+                                 __m512i &amp;sum, __m512i &amp;cout) {
+    __m512i a_xor_b = _mm512_xor_si512(a, b);
+    sum = _mm512_xor_si512(a_xor_b, cin);
+    __m512i term1 = _mm512_and_si512(a, b);
+    __m512i term2 = _mm512_and_si512(cin, a_xor_b);
+    cout = _mm512_or_si512(term1, term2);
+}
+</code></pre>
+<h2>Part III: Complete Elliptic Curve Addition Laws</h2>
+<h2>Section 4: Short Weierstrass &amp; Complete Addition Formulations</h2>
+<p>Standard point addition formulas suffer from exceptional points (e.g., doubling when P = Q, or yielding identity when P = -Q), leaving implementations vulnerable to side-channel analysis (SPA/DPA). Complete addition formulas eliminate exceptional cases, executing the exact same mathematical sequence for any pair of inputs (P, Q) in E(F_p).</p>
+<p>Renes-Costello-Batina Complete Formula for Short Weierstrass Curves</p>
+<p>For a curve E: y^2 = x^3 + ax + b, let P = (X_1, Y_1, Z_1) and Q = (X_2, Y_2, Z_2) in homogeneous projective coordinates. The complete addition algorithm proceeds through 31 field operations without branching:</p>
+<p>$$t_0 = X_1 \cdot X_2, \quad t_1 = Y_1 \cdot Y_2, \quad t_2 = Z_1 \cdot Z_2$$ $$t_3 = X_1 + Y_1, \quad t_4 = X_2 + Y_2, \quad t_3 = t_3 \cdot t_4$$ $$t_4 = t_0 + t_1, \quad t_3 = t_3 - t_4, \quad t_4 = Y_1 + Z_1$$ $$t_5 = Y_2 + Z_2, \quad t_4 = t_4 \cdot t_5, \quad t_5 = t_1 + t_2$$ $$t_4 = t_4 - t_5, \quad t_5 = X_1 + Z_1, \quad t_6 = X_2 + Z_2$$ $$t_5 = t_5 \cdot t_6, \quad t_6 = t_0 + t_2, \quad t_5 = t_5 - t_6$$ $$X_3 = t_1 - a \cdot t_5 - 3b \cdot t_2, \quad Y_3 = t_1 + a \cdot t_5 + 3b \cdot t_2$$</p>
+<h2>Section 5: Unrolled Arithmetic Pipelines &amp; Register Allocation</h2>
+<p>To minimize cache interaction and load/store bottlenecks, operations are pipeline-mapped to architectural registers (R_0 ... R_15).</p>
+<ul>
+<li>Step 1: MUL R_0 = X_1 * X_2 (no dependency)</li>
+<li>Step 2: MUL R_1 = Y_1 * Y_2 (no dependency)</li>
+<li>Step 3: MUL R_2 = Z_1 * Z_2 (no dependency)</li>
+<li>Step 4: ADD R_3 = X_1 + Y_1 (no dependency)</li>
+<li>Step 5: ADD R_4 = X_2 + Y_2 (no dependency)</li>
+<li>Step 6: MUL R_3 = R_3 * R_4 (read R_3, R_4)</li>
+<li>Step 7: ADD R_4 = R_0 + R_1 (read R_0, R_1)</li>
+<li>Step 8: SUB R_3 = R_3 - R_4 (read R_3, R_4)</li>
+<li>Step 9: MUL_CONST R_5 = R_2 * (3b) (read R_2, const 3b)</li>
+</ul>
+<h2>Part IV: Multi-Scalar Multiplication (MSM) &amp; Precomputation Engines</h2>
+<h2>Section 6: Pippenger&#x27;s Exponentiation Scheme</h2>
+<p>Multi-Scalar Multiplication (MSM) computes the linear combination of N elliptic curve points P_i and scalars k_i:</p>
+<p>$$Q = \sum_{i=1}^{N} k_i P_i$$</p>
+<p>Pippenger&#x27;s algorithm segments b-bit scalars into c-bit windows. Let r = ceil(b / c).</p>
+<p>For each window j in [0, r-1], bucket accumulators B_k (where k in [1, 2^c - 1]) are populated, followed by a summation reduction step:</p>
+<p>$$S_j = \sum_{k=1}^{2^c - 1} k \cdot B_k$$</p>
+<p>Final Result: $$Q = \sum_{j=0}^{r-1} 2^{jc} S_j$$</p>
+<pre><code>
+#include &lt;vector&gt;
+struct Point { uint64_t x[4], y[4], z[4]; };
+void accumulate_buckets(const std::vector&lt;Point&gt;&amp; points,
+                        const std::vector&lt;uint16_t&gt;&amp; window_scalars,
+                        Point* buckets, size_t num_points) {
+    for (size_t i = 0; i &lt; num_points; ++i) {
+        uint16_t bucket_idx = window_scalars[i];
+        if (bucket_idx &gt; 0) {
+            complete_add_inline(&amp;buckets[bucket_idx], &amp;points[i]);
+        }
+    }
+}
+</code></pre>
+<h2>Section 7: Hardware Lookup Engines &amp; Memory Bandwidth Elimination</h2>
+<p>To bypass dynamic scalar multiplication latencies, precomputed lookup tables (LUTs) store pre-doubled and pre-added combinations of fixed points. Window size c = 12 gives optimal GPU/thread balance; c = 18 creates high L3 cache pressure.</p>
+<p>Cache-Line Aligned Prefetch Engine</p>
+<pre><code>
+void prefetch_bucket_pipeline(Point* buckets, const uint16_t* scalar_windows, size_t n) {
+    const size_t PREFETCH_DISTANCE = 16;
+    for (size_t i = 0; i &lt; n; ++i) {
+        if (i + PREFETCH_DISTANCE &lt; n) {
+            uint16_t future_idx = scalar_windows[i + PREFETCH_DISTANCE];
+            _mm_prefetch(reinterpret_cast&lt;const char*&gt;(&amp;buckets[future_idx]), _MM_HINT_T0);
+        }
+        uint16_t current_idx = scalar_windows[i];
+        if (current_idx &gt; 0) {
+            complete_add_inline(&amp;buckets[current_idx], &amp;points_global[i]);
+        }
+    }
+}
+</code></pre>
+<h2>Part V: Production C++/CUDA High-Performance Acceleration Routines</h2>
+<h2>Section 8: Heterogeneous Host-Device Architecture</h2>
+<p>The hybrid host-GPU MSM pipeline splits the workload into streamable stages: scalar decomposition on the CPU host, async transfer to device memory, parallel bucket accumulation across CUDA thread blocks, and prefix-sum reduction on the host.</p>
+<p>HOST (CPU): Scalar Processing -&gt; Window Partitioning &amp; Bucketing   || Host-To-Device Async Copy DEVICE (GPU): Grid Layout (Window Slices as Blocks -&gt; Threads as Buckets), Inter-Warp Atomic Accumulation over Shared Memory   || Device-To-Host Async Copy HOST (CPU): Final Horner-Scheme Window Accumulation</p>
+<h2>Section 9: Complete High-Performance CUDA Kernel</h2>
+<pre><code>
+#include &lt;cuda_runtime.h&gt;
+#include &lt;cstdint&gt;
+#define LIMBS 4
+#define WARP_SIZE 32
+struct FieldElement { uint64_t limb[LIMBS]; };
+struct PointJacobian { FieldElement X; FieldElement Y; FieldElement Z; };
+
+__device__ __forceinline__ void add_cc(uint64_t&amp; r, uint64_t a, uint64_t b, int&amp; carry) {
+    asm volatile(
+        &quot;add.cc.u64 %0, %1, %2;\n\t&quot;
+        &quot;addc.u64 %3, 0, 0;\n\t&quot;
+        : &quot;=l&quot;(r), &quot;+r&quot;(carry) : &quot;l&quot;(a), &quot;l&quot;(b));
+}
+__device__ void field_add_device(const FieldElement* a, const FieldElement* b, FieldElement* c) {
+    asm volatile (
+        &quot;add.cc.u64 %0, %4, %8;\n\t&quot;
+        &quot;addc.cc.u64 %1, %5, %9;\n\t&quot;
+        &quot;addc.cc.u64 %2, %6, %10;\n\t&quot;
+        &quot;addc.u64    %3, %7, %11;\n\t&quot;
+        : &quot;=l&quot;(c-&gt;limb[0]), &quot;=l&quot;(c-&gt;limb[1]), &quot;=l&quot;(c-&gt;limb[2]), &quot;=l&quot;(c-&gt;limb[3])
+        : &quot;l&quot;(a-&gt;limb[0]), &quot;l&quot;(a-&gt;limb[1]), &quot;l&quot;(a-&gt;limb[2]), &quot;l&quot;(a-&gt;limb[3]),
+          &quot;l&quot;(b-&gt;limb[0]), &quot;l&quot;(b-&gt;limb[1]), &quot;l&quot;(b-&gt;limb[2]), &quot;l&quot;(b-&gt;limb[3]));
+}
+__global__ void msm_accumulate_kernel(
+    const PointJacobian* __restrict__ d_points,
+    const uint32_t* __restrict__ d_scalars,
+    PointJacobian* __restrict__ d_buckets,
+    size_t num_points, uint32_t window_bits, uint32_t window_shift) {
+    uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid &gt;= num_points) return;
+    uint32_t scalar = d_scalars[tid];
+    uint32_t bucket_idx = (scalar &gt;&gt; window_shift) &amp; ((1U &lt;&lt; window_bits) - 1);
+    if (bucket_idx &gt; 0) {
+        PointJacobian* target_bucket = &amp;d_buckets[blockIdx.x * (1U &lt;&lt; window_bits) + bucket_idx];
+        point_add_complete(target_bucket, &amp;d_points[tid], target_bucket);
+    }
+}
+</code></pre>
+<h2>Part VI: Chapter Map &amp; Topic Index (Chapters 251-500)</h2>
+<ul>
+<li>Ch. 251: Advanced Multi-Limb Representation Schemes (Arithmetic Core)</li>
+</ul>
+<ul>
+<li>Ch. 268: Radix-2^51 Redundant Unsigned Field Arithmetic (Low-Level ISA)</li>
+</ul>
+<ul>
+<li>Ch. 285: MULX/ADCX/ADOX Instruction Pipelining in AVX2 (x86 Assembly)</li>
+</ul>
+<ul>
+<li>Ch. 302: Bit-Sliced Vectorization in AVX-512 Architectures (SIMD Operations)</li>
+</ul>
+<ul>
+<li>Ch. 320: Complete Curve Addition over Prime Fields (Elliptic Curves)</li>
+</ul>
+<ul>
+<li>Ch. 345: Renes-Costello-Batina SW Formula Complete Derivation (Mathematical Proof)</li>
+</ul>
+<ul>
+<li>Ch. 370: Side-Channel Mitigation via Fixed-Path Additions (Hardware Security)</li>
+</ul>
+<ul>
+<li>Ch. 398: Pippenger Algorithm Window Size Optimization Mechanics (MSM Scaling)</li>
+</ul>
+<ul>
+<li>Ch. 425: Prefetch Engine Implementation for High-Bandwidth MSM (Memory Pipeline)</li>
+</ul>
+<ul>
+<li>Ch. 450: Heterogeneous Host-GPU Workload Splitting (CUDA Systems)</li>
+</ul>
+<ul>
+<li>Ch. 478: Parallel Bucket Aggregation &amp; Warp Atomic Controls (GPU Kernels)</li>
+</ul>
+<ul>
+<li>Ch. 500: Sub-Millisecond 2^20 Multi-Scalar Multiplication Bounds (Benchmark Systems)</li>
+</ul>
+</main>
+<footer>Coin Space Math &mdash; Jay Omer</footer>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false}
+    ],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>

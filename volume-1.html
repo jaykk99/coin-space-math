@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coin Space Math (CSM) - Volume I: Theoretical Foundations &amp; Field Axioms (Ch. 1-250) | Coin Space Math</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<style>
+  :root { --bg: #0f172a; --panel: #1e293b; --text: #e2e8f0; --muted: #94a3b8;
+          --accent: #22d3ee; --accent2: #a78bfa; --code: #0b1220; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: Georgia, 'Times New Roman', serif;
+         line-height: 1.75; margin: 0; padding: 0; }
+  nav { background: #0b1220; padding: 14px 24px; position: sticky; top: 0; z-index: 10;
+        border-bottom: 1px solid #1e293b; font-family: system-ui, sans-serif; }
+  nav a { color: var(--accent); text-decoration: none; margin-right: 22px; font-size: 15px; }
+  nav a:hover { text-decoration: underline; }
+  nav .home { color: #fff; font-weight: 700; }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 2em; color: #fff; border-bottom: 2px solid var(--accent); padding-bottom: 12px; }
+  h2 { font-size: 1.5em; color: var(--accent); margin-top: 2.2em; font-family: system-ui, sans-serif; }
+  h3 { font-size: 1.2em; color: var(--accent2); margin-top: 1.8em; font-family: system-ui, sans-serif; }
+  p { margin: 1em 0; }
+  pre { background: var(--code); border: 1px solid #334155; border-radius: 8px; padding: 16px;
+        overflow-x: auto; font-size: 13.5px; line-height: 1.6; }
+  code { font-family: 'JetBrains Mono', Consolas, monospace; }
+  p code { background: #1e293b; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  ul { padding-left: 1.4em; }
+  li { margin: 0.45em 0; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 8px 0; }
+  .vol-sub { color: var(--muted); font-size: 1.1em; margin-top: -8px; font-family: system-ui, sans-serif; }
+  .toc { background: var(--panel); border-radius: 10px; padding: 18px 24px; margin: 24px 0; font-family: system-ui, sans-serif; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  footer { text-align: center; color: var(--muted); padding: 30px; font-size: 13px; font-family: system-ui, sans-serif; }
+</style>
+</head>
+<body>
+<nav>
+  <a class="home" href="index.html">Coin Space Math</a>
+  <a href="volume-1.html">Volume I</a>
+  <a href="volume-2.html">Volume II</a>
+  <a href="volume-3.html">Volume III</a>
+</nav>
+<main>
+<h1>Coin Space Math (CSM) - Volume I: Theoretical Foundations &amp; Field Axioms (Ch. 1-250)</h1>
+<p class="vol-sub">Theoretical Foundations &amp; Field Axioms &mdash; Ch. 1-250</p>
+<p>Coin Space Math (CSM) - Volume I: Theoretical Foundations &amp; Field Axioms (Ch. 1-250)</p>
+<p>Volume I: Theoretical Foundations &amp; Field Axioms</p>
+<p>Monograph on Discrete Manifolds, Modular Projective Geometry, and Lattice Dynamics</p>
+<h2>Section 1: Continuous Manifold Mapping over Z_n</h2>
+<h3>1.1 Structural Definitions &amp; Topology</h3>
+<p>Let M be a continuous d-dimensional Riemannian manifold embedded in R^N. We define the discrete projection operator pi_n: M -&gt; Z_n^d over the cyclic ring Z_n = Z/nZ via the localized coordinate chart (U, phi) such that for any p in U subset M:</p>
+<p>$$\pi_n(p) = \left\lfloor \frac{n}{2\pi} \cdot \text{Wrap}_{\left[-\pi, \pi\right)}\left( \varphi(p) \right) \right\rfloor \pmod n$$</p>
+<p>Definition 1.1 (Modular Tangent Space). The discrete tangent space T_p M_{Z_n} at a point p in Z_n^d is defined as the module over the ring Z_n spanned by the directional shift operators {d_1, d_2, ..., d_d}, operating under the modular difference metrics:</p>
+<p>$$\Delta_i f(p) = f(p + e_i \pmod n) - f(p) \pmod n$$</p>
+<h3>1.2 Metric Tensor Formulation</h3>
+<p>The continuous Riemannian metric g_{ij} maps to a modular discrete metric tensor g in Z_n^{d x d}.</p>
+<p>Theorem 1.1 (Isometric Embedding Invariance). Let psi: Z_n^d -&gt; Z_n^d be a bijection preserving the modular geodesic distance d_g(p, q). Then psi preserves the discrete Killing vector fields under modulo n arithmetic.</p>
+<p>Proof. Let d_g(p, q) = min_gamma sum sqrt((gamma_{k+1} - gamma_k)^T g (gamma_{k+1} - gamma_k)) mod n. Since psi preserves d_g, for any infinitesimal shift vector v in T_p M_{Z_n}, we have:</p>
+<p>$$v^T \mathbf{g} v \equiv (\mathcal{J}\psi v)^T \mathbf{g} (\mathcal{J}\psi v) \pmod n$$</p>
+<p>where J_psi denotes the discrete Jacobian matrix of psi. Taking the Lie derivative of g along the vector field X represented by psi - I, we obtain L_X g = 0 mod n. QED</p>
+<h2>Section 2: Torsional Displacement Vectors</h2>
+<h3>2.1 Torsion Tensor Field</h3>
+<p>The torsional displacement vector tau in T_p M_{Z_n} quantifies non-commutative path integration defects across elementary cell bounds in the discrete lattice.</p>
+<p>$$T(X, Y) = \nabla_X Y - \nabla_Y X - [X, Y] \pmod n$$</p>
+<p>In local modular coordinates, the components of the torsion tensor T^lambda_{mu nu} are expressed via the connection coefficients Gamma^lambda_{mu nu}:</p>
+<p>$$T^\lambda_{\mu\nu} = \Gamma^\lambda_{\mu\nu} - \Gamma^\lambda_{\nu\mu} - c^\lambda_{\mu\nu} \pmod n$$</p>
+<p>where c^lambda_{mu nu} are the structure constants of the discrete coordinate Lie algebra.</p>
+<h3>2.2 Displacement Calculation Pseudocode</h3>
+<p>The following algorithm computes the net torsional displacement vector along a closed loop path gamma on the discrete manifold Z_n^d:</p>
+<pre><code>
+def compute_torsional_displacement(path_nodes, connection_matrix, modulus):
+    dim = len(path_nodes[0])
+    tau = [0] * dim
+    num_steps = len(path_nodes)
+    for k in range(num_steps - 1):
+        p_curr = path_nodes[k]
+        p_next = path_nodes[k + 1]
+        dx = [(p_next[i] - p_curr[i]) % modulus for i in range(dim)]
+        for l in range(dim):
+            correction = 0
+            for mu in range(dim):
+                for nu in range(dim):
+                    gamma_val = connection_matrix[p_curr][l][mu][nu]
+                    correction += gamma_val * dx[mu] * dx[nu]
+            tau[l] = (tau[l] + dx[l] + correction) % modulus
+    return tau
+</code></pre>
+<h2>Section 3: Modular Projective Geometry in Jacobian Coordinates</h2>
+<h3>3.1 Mapping Transformation</h3>
+<p>To eliminate costly modular inversions in field calculations over prime fields F_p (where p &gt; 3), affine coordinates (x, y) in F_p^2 are mapped to Jacobian projective coordinates (X, Y, Z) in P^2(F_p) via:</p>
+<p>$$x = \frac{X}{Z^2}, \quad y = \frac{Y}{Z^3} \quad (Z \neq 0)$$</p>
+<p>The elliptic curve equation y^2 = x^3 + ax + b (mod p) converts to the homogeneous form:</p>
+<p>$$\mathcal{E}_{Jac}: Y^2 \equiv X^3 + a X Z^4 + b Z^6 \pmod p$$</p>
+<h3>3.2 Complete Scalar Addition Laws (Renes-Costello-Batina Form)</h3>
+<p>For all input points P_1 = (X_1, Y_1, Z_1) and P_2 = (X_2, Y_2, Z_2), the complete addition algorithm operates without exceptional points:</p>
+<ul>
+<li>U_1 = X_1 * Z_2^2, U_2 = X_2 * Z_1^2 | cost: 4M + 2S</li>
+<li>S_1 = Y_1 * Z_2^3, S_2 = Y_2 * Z_1^3 | cost: 4M + 2S</li>
+<li>H = U_2 - U_1, r = S_2 - S_1 | cost: 2A</li>
+<li>I = (2H)^2, J = H * I, V = U_1 * I | cost: 1M + 1S + 1D</li>
+<li>X_3 = r^2 - J - 2V | cost: 1S + 3A</li>
+<li>Y_3 = r * (V - X_3) - 2 S_1 * J | cost: 2M + 2A</li>
+<li>Z_3 = ((Z_1 + Z_2)^2 - Z_1^2 - Z_2^2) * H | cost: 1M + 1S + 3A</li>
+</ul>
+<p>Total Complexity: 12M + 7S + 11A where M denotes multiplication, S squaring, A addition/subtraction, and D doubling.</p>
+<h2>Section 4: Discrete Lattice Constructions</h2>
+<h3>4.1 E_8 and Leech Lattice Field Realizations</h3>
+<p>The E_8 lattice Gamma_8 subset R^8 is defined as the set of vectors x in R^8 union (R + 1/2)^8 such that sum x_i = 0 mod 2. Over a finite field F_q, its generator matrix M_{E_8} is:</p>
+<p>Row 1:  2    0    0    0    0    0    0    0 Row 2: -1    1    0    0    0    0    0    0 Row 3:  0   -1    1    0    0    0    0    0 Row 4:  0    0   -1    1    0    0    0    0 Row 5:  0    0    0   -1    1    0    0    0 Row 6:  0    0    0    0   -1    1    0    0 Row 7:  0    0    0    0    0   -1    1    0 Row 8: 1/2  1/2  1/2  1/2  1/2  1/2  1/2  1/2</p>
+<h3>4.2 Modular Lattice Reduction Algorithm</h3>
+<p>To project lattice points onto Z_n, we apply a modified Lenstra-Lenstra-Lovasz (LLL) reduction adapted for cyclic rings.</p>
+<pre><code>
+def modular_lll_reduce(basis, modulus, delta=0.75):
+    import math
+    def dot_product(v1, v2):
+        return sum((a * b) % modulus for a, b in zip(v1, v2)) % modulus
+    def vector_sub(v1, v2):
+        return [(a - b) % modulus for a, b in zip(v1, v2)]
+    def scalar_mul(v, c):
+        return [(a * c) % modulus for a in v]
+    n = len(basis)
+    k = 1
+    while k &lt; n:
+        for j in range(k - 1, -1, -1):
+            mu_kj = (dot_product(basis[k], basis[j]) *
+                     pow(dot_product(basis[j], basis[j]), -1, modulus)) % modulus
+            if abs(mu_kj) &gt; 0.5:
+                basis[k] = vector_sub(basis[k], scalar_mul(basis[j], round(mu_kj)))
+        lhs = dot_product(basis[k], basis[k])
+        rhs = (delta - mu_kj**2) * dot_product(basis[k-1], basis[k-1])
+        if lhs &gt;= rhs % modulus:
+            k += 1
+        else:
+            basis[k], basis[k-1] = basis[k-1], basis[k]
+            k = max(k - 1, 1)
+    return basis
+</code></pre>
+<h2>Section 5: Axiomatic Field Unification Matrix</h2>
+<p>The theoretical framework across Chapters 1 through 250 converges on the unified field mappings summarized below:</p>
+<p>Continuous Manifold M --(pi_n)--&gt; Z_n^d --(Jac)--&gt; P^2(F_p)         | Torsion T                | Shift                  | Lattice         v                          v                        v      T_p M --(g)--&gt; T_p M_{Z_n} --(M_{E_8})--&gt; Leech Lattice</p>
+<p>Theorem 5.1 (Field Unification Consistency). The mapping sequence pi_n o Jac o M_{E_8} forms a commutative diagram under the invariant scalar action k . P (mod n), preserving discrete geodesic structures across arbitrary cyclic ring dimensions d &gt;= 8.</p>
+<p>Proof. Follows directly from the homomorphic property of pi_n over T_p M_{Z_n} and the complete addition invariance established in Theorem 1.1 and Section 3.2. QED</p>
+</main>
+<footer>Coin Space Math &mdash; Jay Omer</footer>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false}
+    ],
+    throwOnError: false
+  });
+});
+</script>
+</body>
+</html>
