@@ -128,7 +128,7 @@
                         </div>
 
                         <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-amber-500">
-                            <span class="text-xs font-bold text-amber-700">Volume IV (Ch. 751–1000)</span>
+                            <span class="text-xs font-bold text-amber-700">Volume IV (Ch. 751–1000) — planned, not published yet</span>
                             <h4 class="font-semibold text-slate-800">Production Engine & Hardware Pipelines</h4>
                             <p class="text-xs text-slate-600 mt-1">Executable Python models, C++/CUDA parallel kernels, verification test benches.</p>
                         </div>
@@ -332,17 +332,16 @@ def csm_add(p1, p2):
             <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <h2 class="text-2xl font-bold text-slate-900 mb-2">1,000-Chapter Master Standard Index</h2>
                 <p class="text-slate-600 text-sm leading-relaxed">
-                    Search and explore the comprehensive structural directory of the 1,000 chapters comprising the complete Coin Space Math treatise. Filter by volume or specific theoretical subject matter.
+                    Search the representative chapter directory below (sample entries from each published volume). The full treatise text lives in the volume pages: <a class="text-cyan-600 font-semibold hover:underline" href="volume-1.html">Volume I (Ch. 1-250)</a>, <a class="text-cyan-600 font-semibold hover:underline" href="volume-2.html">Volume II (Ch. 251-500)</a>, <a class="text-cyan-600 font-semibold hover:underline" href="volume-3.html">Volume III (Ch. 501-750)</a>. Click any chapter card to open its volume. Filter by volume or subject.
                 </p>
                 <div class="mt-4 flex flex-col sm:flex-row gap-4">
                     <input type="text" id="chapterSearch" onkeyup="filterChapters()" placeholder="Search chapters (e.g., Jacobian, Babai, SIMD)..." class="p-2.5 border rounded-lg w-full sm:w-80 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500">
                     <select id="volumeFilter" onchange="filterChapters()" class="p-2.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
-                        <option value="ALL">All Volumes (Chapters 1–1000)</option>
+                        <option value="ALL">All Volumes (Chapters 1-750)</option>
                         <option value="VOL1">Volume I (Ch. 1–250)</option>
                         <option value="VOL2">Volume II (Ch. 251–500)</option>
                         <option value="VOL3">Volume III (Ch. 501–750)</option>
-                        <option value="VOL4">Volume IV (Ch. 751–1000)</option>
-                    </select>
+                                            </select>
                 </div>
             </div>
 
@@ -581,9 +580,6 @@ def csm_add(p1, p2):
             { id: 520, vol: "VOL3", title: "Bounded Closest Vector Problem (CVP) Framing", desc: "Re-formulating scalar lookup as augmented 2D lattice embedding." },
             { id: 640, vol: "VOL3", title: "Gram-Schmidt Orthogonalization & LLL Reduction", desc: "Polynomial-time bounds on vector basis reduction." },
             { id: 710, vol: "VOL3", title: "Babai’s Nearest Plane Traversal Algorithms", desc: "Convergence towards closest lattice point using target projections." },
-            { id: 820, vol: "VOL4", title: "Executable Python Engine Implementation Specification", desc: "Complete reference model for software execution and validation." },
-            { id: 910, vol: "VOL4", title: "CUDA Multi-GPU Parallel Torsional Kernel Design", desc: "High-throughput parallelization of discrete logarithm bound searches." },
-            { id: 1000, vol: "VOL4", title: "Unified Universal Key-Gen Master Specification", desc: "Synthesis of theoretical axioms, lattice reduction, and hardware binaries." }
         ];
 
         function populateChapters() {
@@ -594,6 +590,12 @@ def csm_add(p1, p2):
                 const card = document.createElement('div');
                 card.className = "p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-2 hover:border-cyan-500 transition chapter-card";
                 card.setAttribute('data-vol', ch.vol);
+                card.style.cursor = 'pointer';
+                card.title = 'Open the full text of ' + ch.vol;
+                card.addEventListener('click', function() {
+                    var pages = { VOL1: 'volume-1.html', VOL2: 'volume-2.html', VOL3: 'volume-3.html' };
+                    if (pages[ch.vol]) window.location.href = pages[ch.vol];
+                });
                 card.setAttribute('data-text', `${ch.title} ${ch.desc}`.toLowerCase());
 
                 card.innerHTML = `
@@ -603,6 +605,7 @@ def csm_add(p1, p2):
                     </div>
                     <h4 class="font-bold text-sm text-slate-800">${ch.title}</h4>
                     <p class="text-xs text-slate-500">${ch.desc}</p>
+                    <p class="text-xs font-semibold text-cyan-600">Open full volume text</p>
                 `;
                 grid.appendChild(card);
             });
