@@ -19,6 +19,9 @@
     <title>Coin Space Math (CSM) Master Application Suite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <style>
         .chart-container {
             position: relative;
@@ -56,12 +59,13 @@
                 </div>
             </div>
             
-            <nav class="flex flex-wrap gap-2 mt-4 md:mt-0" id="main-nav">
-                <button onclick="switchTab('overview')" id="nav-overview" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-cyan-600 text-white">Overview</button>
-                <button onclick="switchTab('geometry')" id="nav-geometry" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800">Torsional Geometry</button>
-                <button onclick="switchTab('lattice')" id="nav-lattice" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800">Spectral Lattice</button>
-                <button onclick="switchTab('engine')" id="nav-engine" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800">Execution Engine</button>
-                <button onclick="switchTab('index')" id="nav-index" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800">1000-Ch Standard</button>
+            <nav class="flex flex-wrap gap-2 mt-4 md:mt-0" id="main-nav" role="tablist" aria-label="CSM suite tabs">
+                <button onclick="switchTab('overview')" id="nav-overview" role="tab" aria-selected="true" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-cyan-600 text-white">Overview</button>
+                <button onclick="switchTab('geometry')" id="nav-geometry" role="tab" aria-selected="false" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800">Torsional Geometry</button>
+                <button onclick="switchTab('lattice')" id="nav-lattice" role="tab" aria-selected="false" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800">Spectral Lattice</button>
+                <button onclick="switchTab('engine')" id="nav-engine" role="tab" aria-selected="false" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800">Execution Engine</button>
+                <button onclick="switchTab('index')" id="nav-index" role="tab" aria-selected="false" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800">1000-Ch Standard</button>
+                <button onclick="switchTab('glossary')" id="nav-glossary" role="tab" aria-selected="false" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800">Glossary</button>
             </nav>
         </div>
     </header>
@@ -128,7 +132,7 @@
                         </div>
 
                         <div class="p-3 bg-slate-50 rounded-lg border-l-4 border-amber-500">
-                            <span class="text-xs font-bold text-amber-700">Volume IV (Ch. 751–1000) — planned, not published yet</span>
+                            <span class="text-xs font-bold text-amber-700">Volume IV (Ch. 751–1000), planned, not published yet</span>
                             <h4 class="font-semibold text-slate-800">Production Engine & Hardware Pipelines</h4>
                             <p class="text-xs text-slate-600 mt-1">Executable Python models, C++/CUDA parallel kernels, verification test benches.</p>
                         </div>
@@ -353,6 +357,48 @@ def csm_add(p1, p2):
 
     </main>
 
+        <!-- TAB 6: GLOSSARY -->
+        <section id="tab-glossary" class="hidden space-y-8">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Glossary of Terms</h2>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Plain definitions for the vocabulary used across the CSM volumes, visualizers, and engine.
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                    <div><dt class="font-bold text-slate-900 text-sm">secp256k1</dt><dd class="text-sm text-slate-600 mt-1">The elliptic curve y&#178; = x&#179; + 7 over the prime field F_p with p = 2&#178;&#8309;&#8310; &#8722; 2&#179;&#8322; &#8722; 977, used by Bitcoin for public-key cryptography.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Finite field F_p</dt><dd class="text-sm text-slate-600 mt-1">The set {0, &hellip;, p&#8722;1} with addition and multiplication modulo the prime p; every nonzero element has a multiplicative inverse.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Short Weierstrass form</dt><dd class="text-sm text-slate-600 mt-1">The equation y&#178; = x&#179; + ax + b describing an elliptic curve over a field of characteristic neither 2 nor 3.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Generator point G</dt><dd class="text-sm text-slate-600 mt-1">A fixed base point of prime order n on the curve; public keys are scalar multiples k&middot;G.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Curve order n</dt><dd class="text-sm text-slate-600 mt-1">The number of points on the curve. For secp256k1, n = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Private scalar</dt><dd class="text-sm text-slate-600 mt-1">A secret integer k in [1, n&#8722;1] that must never be revealed or reused with a weak nonce.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Public key</dt><dd class="text-sm text-slate-600 mt-1">The curve point Q = k&middot;G derived from the private scalar; recovering k from Q is the discrete logarithm problem.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Scalar multiplication</dt><dd class="text-sm text-slate-600 mt-1">Computing k&middot;P by repeated point addition and doubling; the core operation of elliptic-curve cryptography.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Point at infinity</dt><dd class="text-sm text-slate-600 mt-1">The identity element of the curve group, denoted O; P + O = P for every point P.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Jacobian coordinates</dt><dd class="text-sm text-slate-600 mt-1">Projective representation (X : Y : Z) with x = X/Z&#178;, y = Y/Z&#179;, which postpones costly modular inversions to the end of an addition chain.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Complete addition formulas</dt><dd class="text-sm text-slate-600 mt-1">Addition laws with no exceptional cases (doubling, or P + (&#8722;P)), so the same code path runs for every input pair.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Double-and-add</dt><dd class="text-sm text-slate-600 mt-1">Binary scalar multiplication: scan the bits of k, doubling each step and adding P whenever a bit is 1.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Montgomery ladder</dt><dd class="text-sm text-slate-600 mt-1">A regular double-and-add variant performing one addition and one doubling per bit, which keeps the operation sequence secret-independent.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Side-channel attack</dt><dd class="text-sm text-slate-600 mt-1">Extracting secrets from timing, power draw, or cache behavior instead of from the underlying mathematics.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Constant-time code</dt><dd class="text-sm text-slate-600 mt-1">Code whose control flow and memory accesses do not depend on secret data.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Montgomery multiplication</dt><dd class="text-sm text-slate-600 mt-1">Modular multiplication that replaces division by p with shifts and single-word multiplies via the Montgomery reduction step (REDC).</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Bit-slicing</dt><dd class="text-sm text-slate-600 mt-1">Transposing data so the k-th bit of N field elements sits in one N-bit SIMD register, turning field arithmetic into bitwise logic.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">SIMD</dt><dd class="text-sm text-slate-600 mt-1">Single Instruction, Multiple Data: one CPU instruction operating on a whole vector register at once (e.g. AVX-512).</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">MSM</dt><dd class="text-sm text-slate-600 mt-1">Multi-scalar multiplication: computing &Sigma; k&#7522;P&#7522;, the dominant cost in many zero-knowledge proof systems.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Pippenger's algorithm</dt><dd class="text-sm text-slate-600 mt-1">An MSM method that buckets points by scalar windows and combines the buckets with a Horner-style accumulation.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Lattice</dt><dd class="text-sm text-slate-600 mt-1">A discrete additive subgroup of R&#8319; formed by all integer combinations of a set of basis vectors.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Gram&ndash;Schmidt orthogonalization</dt><dd class="text-sm text-slate-600 mt-1">The process producing orthogonal vectors b&#7522;* from a basis; their lengths measure how skewed the basis is.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">LLL reduction</dt><dd class="text-sm text-slate-600 mt-1">The Lenstra&ndash;Lenstra&ndash;Lov&aacute;sz algorithm: polynomial-time basis reduction yielding short, nearly orthogonal bases.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">BKZ reduction</dt><dd class="text-sm text-slate-600 mt-1">Block Korkine&ndash;Zolotarev reduction: stronger than LLL, parameterized by a block size &beta; trading cost against basis quality.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Hermite factor</dt><dd class="text-sm text-slate-600 mt-1">A quality measure &delta;&#8319; of a reduced basis; a smaller factor means a shorter first basis vector.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">CVP / SVP</dt><dd class="text-sm text-slate-600 mt-1">Closest Vector Problem / Shortest Vector Problem: the hard lattice problems underlying lattice-based cryptanalysis.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">Babai nearest plane</dt><dd class="text-sm text-slate-600 mt-1">A greedy algorithm that projects a target onto Gram&ndash;Schmidt vectors and rounds, returning a nearby lattice vector.</dd></div>
+                    <div><dt class="font-bold text-slate-900 text-sm">GLV decomposition</dt><dd class="text-sm text-slate-600 mt-1">The Gallant&ndash;Lambert&ndash;Vanstone method splitting k into short k&#8321;, k&#8322; with k &#8801; k&#8321; + k&#8322;&lambda; (mod n) via a curve endomorphism, halving scalar-multiplication cost.</dd></div>
+                </dl>
+            </div>
+        </section>
+
     <!-- Footer -->
     <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-xs">
         <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
@@ -364,15 +410,23 @@ def csm_add(p1, p2):
     <!-- JavaScript Application Logic & Charts -->
     <script>
         // --- Navigation Logic ---
+        const CSM_TABS = ['overview', 'geometry', 'lattice', 'engine', 'index', 'glossary'];
+        function tabFromHash() {
+            const h = (location.hash || '').replace(/^#/, '');
+            return CSM_TABS.includes(h) ? h : 'overview';
+        }
         function switchTab(tabId) {
-            const tabs = ['overview', 'geometry', 'lattice', 'engine', 'index'];
-            tabs.forEach(t => {
+            if (!CSM_TABS.includes(tabId)) tabId = 'overview';
+            CSM_TABS.forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
                 document.getElementById(`nav-${t}`).className = "px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-300 hover:text-white hover:bg-slate-800";
+                document.getElementById(`nav-${t}`).setAttribute('aria-selected', 'false');
             });
 
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             document.getElementById(`nav-${tabId}`).className = "px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-cyan-600 text-white";
+            document.getElementById(`nav-${tabId}`).setAttribute('aria-selected', 'true');
+            if (history.replaceState) history.replaceState(null, '', '#' + tabId);
 
             if (tabId === 'geometry') drawTorsionalCanvas();
         }
@@ -385,7 +439,20 @@ def csm_add(p1, p2):
             initLatticeChart();
             populateChapters();
             drawTorsionalCanvas();
+            switchTab(tabFromHash());
+            // Typeset the $...$ / $$...$$ math embedded in tab copy (deferred
+            // KaTeX scripts run before DOMContentLoaded, so this is safe).
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
         });
+        window.addEventListener('hashchange', () => switchTab(tabFromHash()));
 
         function initOverviewChart() {
             const ctx = document.getElementById('overviewChart').getContext('2d');
@@ -522,6 +589,22 @@ def csm_add(p1, p2):
             ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
             ctx.fillStyle = '#94a3b8';
             ctx.fill();
+
+            // Angle arc from generator to target
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 34, 0, angle);
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Readouts and point labels
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px monospace';
+            ctx.fillText('k = ' + k, 12, 18);
+            ctx.fillText('angle ' + ((k * 3.6) % 360).toFixed(1) + ' deg', 12, 34);
+            ctx.fillText('origin', centerX + 8, centerY - 8);
+            ctx.fillText('G', gx + 10, gy + 4);
+            ctx.fillText('kG', kx + 10, ky + 4);
         }
 
         // --- Spectral Lattice Simulator ---
@@ -546,13 +629,21 @@ def csm_add(p1, p2):
 
         // --- Python Engine Simulation ---
         function runPythonEngine() {
-            const inputVal = document.getElementById('execScalarInput').value;
-            let decimalScalar;
-
-            try {
-                decimalScalar = BigInt(inputVal);
-            } catch (e) {
-                decimalScalar = BigInt(123456789);
+            const inputVal = document.getElementById('execScalarInput').value.trim();
+            const consoleEl = document.getElementById('engineConsole');
+            if (!/^(0x[0-9a-fA-F]+|[0-9]+)$/.test(inputVal)) {
+                consoleEl.innerHTML = `
+                    <div class="text-red-400">[x] Invalid scalar: enter decimal digits or 0x-prefixed hex.</div>
+                    <div class="text-slate-500 mt-1">// Example: 123456789 or 0xF1A9C8B7E6D5</div>
+                `;
+                return;
+            }
+            let decimalScalar = BigInt(inputVal);
+            if (decimalScalar <= 0 || decimalScalar >= (1n << 256n)) {
+                consoleEl.innerHTML = `
+                    <div class="text-red-400">[x] Scalar out of range: must be between 1 and 2^256 - 1.</div>
+                `;
+                return;
             }
 
             // Simplified secp256k1 affine simulation coordinates
@@ -560,7 +651,7 @@ def csm_add(p1, p2):
             const calculatedX = (decimalScalar * BigInt("0x79BE667E") + BigInt(7)) % pMod;
             const calculatedY = (decimalScalar * BigInt("0x483ADA77") + BigInt(13)) % pMod;
 
-            document.getElementById('engineConsole').innerHTML = `
+            consoleEl.innerHTML = `
                 <div class="text-emerald-400">[+] CSM Engine Execution Complete.</div>
                 <div>Target Private Scalar : <span class="text-cyan-400">${inputVal}</span></div>
                 <div>Computed Affine X     : <span class="text-amber-300">0x${calculatedX.toString(16).toUpperCase().padStart(64, '0')}</span></div>
@@ -580,6 +671,24 @@ def csm_add(p1, p2):
             { id: 520, vol: "VOL3", title: "Bounded Closest Vector Problem (CVP) Framing", desc: "Re-formulating scalar lookup as augmented 2D lattice embedding." },
             { id: 640, vol: "VOL3", title: "Gram-Schmidt Orthogonalization & LLL Reduction", desc: "Polynomial-time bounds on vector basis reduction." },
             { id: 710, vol: "VOL3", title: "Babai’s Nearest Plane Traversal Algorithms", desc: "Convergence towards closest lattice point using target projections." },
+            { id: 12, vol: "VOL1", title: "Modular Inverses via Fermat's Little Theorem", desc: "Computing a^{-1} = a^{p-2} mod p and why inversions dominate affine costs." },
+            { id: 60, vol: "VOL1", title: "The Discrete Logarithm Problem over E(F_p)", desc: "Why recovering k from kG is hard: group order, generic attacks, and security levels." },
+            { id: 90, vol: "VOL1", title: "The Point at Infinity and Identity Laws", desc: "The group identity O, negation rules, and P + (-P) = O in coordinates." },
+            { id: 150, vol: "VOL1", title: "Projective Equivalence Classes (X : Y : Z)", desc: "Scaling invariance of (lX : lY : lZ) and affine recovery at the chain end." },
+            { id: 200, vol: "VOL1", title: "Torsion Subgroups and Cofactor Structure", desc: "Subgroup orders dividing n, cofactor clearing, and small-subgroup checks." },
+            { id: 235, vol: "VOL1", title: "E_8 Root Lattice Embeddings", desc: "Mapping the E_8 generator matrix into modular coordinate frames." },
+            { id: 251, vol: "VOL2", title: "Multi-Limb Representation Schemes", desc: "Radix-2^64 limb layouts for 256-bit field elements." },
+            { id: 300, vol: "VOL2", title: "Constant-Time Discipline and Branch Elimination", desc: "Removing secret-dependent branches from field and curve code." },
+            { id: 330, vol: "VOL2", title: "Twisted Edwards Coordinates Overview", desc: "Alternative curve models and their complete addition laws." },
+            { id: 380, vol: "VOL2", title: "Windowed NAF Scalar Recoding", desc: "Non-adjacent form recoding to cut the number of point additions." },
+            { id: 440, vol: "VOL2", title: "Bucket Accumulation and Summation Reduction", desc: "From per-window buckets to the final MSM result via Horner accumulation." },
+            { id: 470, vol: "VOL2", title: "CUDA Memory Coalescing for MSM", desc: "Laying out points and scalars so GPU threads read in coalesced bursts." },
+            { id: 501, vol: "VOL3", title: "Lattice Preliminaries: Bases and Determinants", desc: "Volume III opening: lattices, bases, and det(L) as a volume." },
+            { id: 560, vol: "VOL3", title: "Minkowski Bounds and Successive Minima", desc: "Existence bounds on short lattice vectors from determinant geometry." },
+            { id: 600, vol: "VOL3", title: "BKZ Block-Size Trade-offs", desc: "How block size beta trades polynomial cost against Hermite factor." },
+            { id: 680, vol: "VOL3", title: "Babai Rounding versus Nearest Plane", desc: "Comparing the naive rounding method with the nearest-plane traversal." },
+            { id: 730, vol: "VOL3", title: "The secp256k1 Endomorphism Structure", desc: "The efficiently computable endomorphism behind GLV decomposition." },
+            { id: 745, vol: "VOL3", title: "GLV Lattice Construction via Extended Euclid", desc: "Building the short basis of L_GLV with the extended Euclidean algorithm." },
         ];
 
         function populateChapters() {

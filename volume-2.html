@@ -34,6 +34,9 @@
   .toc { background: var(--panel); border-radius: 10px; padding: 18px 24px; margin: 24px 0; font-family: system-ui, sans-serif; }
   .toc a { color: var(--accent); text-decoration: none; }
   footer { text-align: center; color: var(--muted); padding: 30px; font-size: 13px; font-family: system-ui, sans-serif; }
+  .volnav { display: flex; justify-content: space-between; gap: 16px; margin: 48px 0 8px; font-family: system-ui, sans-serif; }
+  .volnav a { color: var(--accent); text-decoration: none; border: 1px solid #334155; border-radius: 8px; padding: 12px 18px; font-size: 14px; }
+  .volnav a:hover { background: #1e293b; }
 </style>
 </head>
 <body>
@@ -50,9 +53,22 @@
 <p>Volume II: Computational Architecture &amp; Acceleration</p>
 <h2>Chapters 251-500: Advanced Low-Level Implementations &amp; Microarchitectural Optimizations</h2>
 <p>Executive Overview &amp; Scope</p>
+<div class="toc"><strong>Contents</strong><br>
+<a href="#s1">1. Algorithmic Foundations &amp; Reduced-Bimodulus Multiplication</a><br>
+<a href="#s2">2. x86-64 Assembly Optimization (MULX / ADCX / ADOX)</a><br>
+<a href="#s3">3. Bit-Slicing Paradigm &amp; AVX-512 Execution Layout</a><br>
+<a href="#s4">4. Short Weierstrass &amp; Complete Addition Formulations</a><br>
+<a href="#s5">5. Unrolled Arithmetic Pipelines &amp; Register Allocation</a><br>
+<a href="#s6">6. Pippenger&#x27;s Exponentiation Scheme</a><br>
+<a href="#s7">7. Hardware Lookup Engines &amp; Memory Bandwidth Elimination</a><br>
+<a href="#s8">8. Heterogeneous Host-Device Architecture</a><br>
+<a href="#s9">9. Complete High-Performance CUDA Kernel</a><br>
+<a href="#sM">M. Worked Example: Montgomery Reduction by Hand</a><br>
+<a href="#cmap">Chapter Map (Ch. 251-500)</a>
+</div>
 <p>Volume II establishes the architectural specifications, formal mathematics, microarchitectural logic, and production execution routines required to compute elliptic curve arithmetic, multi-scalar multiplication (MSM), and finite field primitives at physical limits. This volume systematically explores optimizations spanning SIMD bit-slicing pipelines, unrolled complete addition laws over short Weierstrass and twisted Edwards curves, memory bandwidth reduction strategies, and C++/CUDA acceleration kernel designs.</p>
 <h2>Part I: Multi-Limb Finite Field Arithmetic</h2>
-<h2>Section 1: Algorithmic Foundations &amp; Reduced-Bimodulus Multiplication</h2>
+<h2 id="s1">Section 1: Algorithmic Foundations &amp; Reduced-Bimodulus Multiplication</h2>
 <p>To compute modular multiplications over large finite fields F_p where p is approx 2^256 or p approx 2^384, standard multi-precision representations decompose elements into vector arrays of 64-bit words (limbs). Given A, B in F_p, let:</p>
 <p>$$A = \sum_{i=0}^{n-1} a_i \beta^i, \quad B = \sum_{i=0}^{n-1} b_i \beta^i$$</p>
 <p>where beta = 2^64, and n = ceil(log_2(p) / 64).</p>
@@ -83,7 +99,7 @@
 <li>Montgomery FIPS | n^2 + n multiplications | 2n^2 + 2n adds | 2n + 1 limbs | ~118 cycles</li>
 <li>Extended Redundant | n^2 multiplications | 4n^2 adds | 1.5n limbs (51-bit) | ~88 cycles</li>
 </ul>
-<h2>Section 2: x86-64 Assembly Optimization (MULX / ADCX / ADOX)</h2>
+<h2 id="s2">Section 2: x86-64 Assembly Optimization (MULX / ADCX / ADOX)</h2>
 <p>Modern x86-64 microarchitectural extensions allow parallel execution of carry chains using the ADCX (Unsigned Addition with Carry Flag) and ADOX (Unsigned Addition with Overflow Flag) instructions, operating simultaneously on separate execution units (Port 0 and Port 6). Combined with non-destructive flag-free multiplication (MULX), dual carry chains compute two partial product additions per clock cycle.</p>
 <pre><code>
 ; Hand-optimized 256-bit Multiplication (4-limb x 4-limb) using MULX/ADCX/ADOX
@@ -122,7 +138,7 @@ multiply_256_adx:
     ret
 </code></pre>
 <h2>Part II: Vectorized SIMD Bit-Slicing Pipelines</h2>
-<h2>Section 3: Bit-Slicing Paradigm &amp; AVX-512 Execution Layout</h2>
+<h2 id="s3">Section 3: Bit-Slicing Paradigm &amp; AVX-512 Execution Layout</h2>
 <p>Bit-slicing maps N parallel field operations across N vector register lanes by reorienting the data structure: the k-th bit of N different field elements is stored packed inside a single N-bit SIMD register. For AVX-512 (N=512), a 256-bit finite field element is represented as 256 distinct 512-bit registers (zmm0 to zmm255).</p>
 <p>Bit-Sliced Full Adder Logic Primitive</p>
 <p>Under bit-slicing, arithmetic additions transform entirely into bitwise logical operations:</p>
@@ -142,12 +158,12 @@ inline void bitsliced_full_adder(__m512i a, __m512i b, __m512i cin,
 }
 </code></pre>
 <h2>Part III: Complete Elliptic Curve Addition Laws</h2>
-<h2>Section 4: Short Weierstrass &amp; Complete Addition Formulations</h2>
+<h2 id="s4">Section 4: Short Weierstrass &amp; Complete Addition Formulations</h2>
 <p>Standard point addition formulas suffer from exceptional points (e.g., doubling when P = Q, or yielding identity when P = -Q), leaving implementations vulnerable to side-channel analysis (SPA/DPA). Complete addition formulas eliminate exceptional cases, executing the exact same mathematical sequence for any pair of inputs (P, Q) in E(F_p).</p>
 <p>Renes-Costello-Batina Complete Formula for Short Weierstrass Curves</p>
 <p>For a curve E: y^2 = x^3 + ax + b, let P = (X_1, Y_1, Z_1) and Q = (X_2, Y_2, Z_2) in homogeneous projective coordinates. The complete addition algorithm proceeds through 31 field operations without branching:</p>
 <p>$$t_0 = X_1 \cdot X_2, \quad t_1 = Y_1 \cdot Y_2, \quad t_2 = Z_1 \cdot Z_2$$ $$t_3 = X_1 + Y_1, \quad t_4 = X_2 + Y_2, \quad t_3 = t_3 \cdot t_4$$ $$t_4 = t_0 + t_1, \quad t_3 = t_3 - t_4, \quad t_4 = Y_1 + Z_1$$ $$t_5 = Y_2 + Z_2, \quad t_4 = t_4 \cdot t_5, \quad t_5 = t_1 + t_2$$ $$t_4 = t_4 - t_5, \quad t_5 = X_1 + Z_1, \quad t_6 = X_2 + Z_2$$ $$t_5 = t_5 \cdot t_6, \quad t_6 = t_0 + t_2, \quad t_5 = t_5 - t_6$$ $$X_3 = t_1 - a \cdot t_5 - 3b \cdot t_2, \quad Y_3 = t_1 + a \cdot t_5 + 3b \cdot t_2$$</p>
-<h2>Section 5: Unrolled Arithmetic Pipelines &amp; Register Allocation</h2>
+<h2 id="s5">Section 5: Unrolled Arithmetic Pipelines &amp; Register Allocation</h2>
 <p>To minimize cache interaction and load/store bottlenecks, operations are pipeline-mapped to architectural registers (R_0 ... R_15).</p>
 <ul>
 <li>Step 1: MUL R_0 = X_1 * X_2 (no dependency)</li>
@@ -161,7 +177,7 @@ inline void bitsliced_full_adder(__m512i a, __m512i b, __m512i cin,
 <li>Step 9: MUL_CONST R_5 = R_2 * (3b) (read R_2, const 3b)</li>
 </ul>
 <h2>Part IV: Multi-Scalar Multiplication (MSM) &amp; Precomputation Engines</h2>
-<h2>Section 6: Pippenger&#x27;s Exponentiation Scheme</h2>
+<h2 id="s6">Section 6: Pippenger&#x27;s Exponentiation Scheme</h2>
 <p>Multi-Scalar Multiplication (MSM) computes the linear combination of N elliptic curve points P_i and scalars k_i:</p>
 <p>$$Q = \sum_{i=1}^{N} k_i P_i$$</p>
 <p>Pippenger&#x27;s algorithm segments b-bit scalars into c-bit windows. Let r = ceil(b / c).</p>
@@ -182,7 +198,7 @@ void accumulate_buckets(const std::vector&lt;Point&gt;&amp; points,
     }
 }
 </code></pre>
-<h2>Section 7: Hardware Lookup Engines &amp; Memory Bandwidth Elimination</h2>
+<h2 id="s7">Section 7: Hardware Lookup Engines &amp; Memory Bandwidth Elimination</h2>
 <p>To bypass dynamic scalar multiplication latencies, precomputed lookup tables (LUTs) store pre-doubled and pre-added combinations of fixed points. Window size c = 12 gives optimal GPU/thread balance; c = 18 creates high L3 cache pressure.</p>
 <p>Cache-Line Aligned Prefetch Engine</p>
 <pre><code>
@@ -201,10 +217,10 @@ void prefetch_bucket_pipeline(Point* buckets, const uint16_t* scalar_windows, si
 }
 </code></pre>
 <h2>Part V: Production C++/CUDA High-Performance Acceleration Routines</h2>
-<h2>Section 8: Heterogeneous Host-Device Architecture</h2>
+<h2 id="s8">Section 8: Heterogeneous Host-Device Architecture</h2>
 <p>The hybrid host-GPU MSM pipeline splits the workload into streamable stages: scalar decomposition on the CPU host, async transfer to device memory, parallel bucket accumulation across CUDA thread blocks, and prefix-sum reduction on the host.</p>
 <p>HOST (CPU): Scalar Processing -&gt; Window Partitioning &amp; Bucketing   || Host-To-Device Async Copy DEVICE (GPU): Grid Layout (Window Slices as Blocks -&gt; Threads as Buckets), Inter-Warp Atomic Accumulation over Shared Memory   || Device-To-Host Async Copy HOST (CPU): Final Horner-Scheme Window Accumulation</p>
-<h2>Section 9: Complete High-Performance CUDA Kernel</h2>
+<h2 id="s9">Section 9: Complete High-Performance CUDA Kernel</h2>
 <pre><code>
 #include &lt;cuda_runtime.h&gt;
 #include &lt;cstdint&gt;
@@ -244,7 +260,16 @@ __global__ void msm_accumulate_kernel(
     }
 }
 </code></pre>
-<h2>Part VI: Chapter Map &amp; Topic Index (Chapters 251-500)</h2>
+<h2 id="sM">Section M: Worked Example - Montgomery Reduction by Hand</h2>
+<p>Take the toy parameters $R = 256 = 2^8$ and the prime $p = 13$ (with $\gcd(R, p) = 1$). The Montgomery constant is $p' = -p^{-1} \bmod R$. Since $13 \cdot 197 = 2561 \equiv 1 \pmod{256}$, we get $p' = -197 \equiv 59 \pmod{256}$.</p>
+<p>Reduce $T = 200$ (which satisfies $T &lt; R\cdot p = 3328$):</p>
+<ul>
+<li>$m = (T \bmod R)\cdot p' \bmod R = 200 \cdot 59 \bmod 256 = 11800 \bmod 256 = 24$</li>
+<li>$t = (T + m\cdot p)/R = (200 + 312)/256 = 2$</li>
+<li>$t = 2 &lt; p$, so no final subtraction is needed; the result is $2$.</li>
+</ul>
+<p>Check: $T\cdot R^{-1} \bmod p = 200 \cdot 256^{-1} \bmod 13$. Since $256 \equiv 9$ and $9^{-1} \equiv 3 \pmod{13}$, this equals $200 \cdot 3 = 600 \equiv 2 \pmod{13}$. The reduction is exact, and the only "division" performed was the shift by $R = 2^8$.</p>
+<h2 id="cmap">Part VI: Chapter Map &amp; Topic Index (Chapters 251-500)</h2>
 <ul>
 <li>Ch. 251: Advanced Multi-Limb Representation Schemes (Arithmetic Core)</li>
 </ul>
@@ -281,8 +306,9 @@ __global__ void msm_accumulate_kernel(
 <ul>
 <li>Ch. 500: Sub-Millisecond 2^20 Multi-Scalar Multiplication Bounds (Benchmark Systems)</li>
 </ul>
+<nav class="volnav"><a href="volume-1.html">&larr; Volume I: Theoretical Foundations &amp; Field Axioms</a><a href="volume-3.html">Volume III: Cryptanalytic Reduction &amp; Scalar Unification &rarr;</a></nav>
 </main>
-<footer>Coin Space Math &mdash; Jay Omer</footer>
+<footer>Coin Space Math &middot; Jay Omer</footer>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   renderMathInElement(document.body, {

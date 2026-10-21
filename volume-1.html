@@ -34,6 +34,9 @@
   .toc { background: var(--panel); border-radius: 10px; padding: 18px 24px; margin: 24px 0; font-family: system-ui, sans-serif; }
   .toc a { color: var(--accent); text-decoration: none; }
   footer { text-align: center; color: var(--muted); padding: 30px; font-size: 13px; font-family: system-ui, sans-serif; }
+  .volnav { display: flex; justify-content: space-between; gap: 16px; margin: 48px 0 8px; font-family: system-ui, sans-serif; }
+  .volnav a { color: var(--accent); text-decoration: none; border: 1px solid #334155; border-radius: 8px; padding: 12px 18px; font-size: 14px; }
+  .volnav a:hover { background: #1e293b; }
 </style>
 </head>
 <body>
@@ -49,7 +52,15 @@
 <p>Coin Space Math (CSM) - Volume I: Theoretical Foundations &amp; Field Axioms (Ch. 1-250)</p>
 <p>Volume I: Theoretical Foundations &amp; Field Axioms</p>
 <p>Monograph on Discrete Manifolds, Modular Projective Geometry, and Lattice Dynamics</p>
-<h2>Section 1: Continuous Manifold Mapping over Z_n</h2>
+<div class="toc"><strong>Contents</strong><br>
+<a href="#sec1">1. Continuous Manifold Mapping over Z_n</a><br>
+<a href="#sec2">2. Torsional Displacement Vectors</a><br>
+<a href="#sec3">3. Modular Projective Geometry in Jacobian Coordinates</a><br>
+<a href="#sec4">4. Discrete Lattice Constructions</a><br>
+<a href="#sec5">5. Axiomatic Field Unification Matrix</a><br>
+<a href="#sec6">6. Worked Example: Jacobian Doubling over a Toy Field</a>
+</div>
+<h2 id="sec1">Section 1: Continuous Manifold Mapping over Z_n</h2>
 <h3>1.1 Structural Definitions &amp; Topology</h3>
 <p>Let M be a continuous d-dimensional Riemannian manifold embedded in R^N. We define the discrete projection operator pi_n: M -&gt; Z_n^d over the cyclic ring Z_n = Z/nZ via the localized coordinate chart (U, phi) such that for any p in U subset M:</p>
 <p>$$\pi_n(p) = \left\lfloor \frac{n}{2\pi} \cdot \text{Wrap}_{\left[-\pi, \pi\right)}\left( \varphi(p) \right) \right\rfloor \pmod n$$</p>
@@ -61,7 +72,7 @@
 <p>Proof. Let d_g(p, q) = min_gamma sum sqrt((gamma_{k+1} - gamma_k)^T g (gamma_{k+1} - gamma_k)) mod n. Since psi preserves d_g, for any infinitesimal shift vector v in T_p M_{Z_n}, we have:</p>
 <p>$$v^T \mathbf{g} v \equiv (\mathcal{J}\psi v)^T \mathbf{g} (\mathcal{J}\psi v) \pmod n$$</p>
 <p>where J_psi denotes the discrete Jacobian matrix of psi. Taking the Lie derivative of g along the vector field X represented by psi - I, we obtain L_X g = 0 mod n. QED</p>
-<h2>Section 2: Torsional Displacement Vectors</h2>
+<h2 id="sec2">Section 2: Torsional Displacement Vectors</h2>
 <h3>2.1 Torsion Tensor Field</h3>
 <p>The torsional displacement vector tau in T_p M_{Z_n} quantifies non-commutative path integration defects across elementary cell bounds in the discrete lattice.</p>
 <p>$$T(X, Y) = \nabla_X Y - \nabla_Y X - [X, Y] \pmod n$$</p>
@@ -88,7 +99,7 @@ def compute_torsional_displacement(path_nodes, connection_matrix, modulus):
             tau[l] = (tau[l] + dx[l] + correction) % modulus
     return tau
 </code></pre>
-<h2>Section 3: Modular Projective Geometry in Jacobian Coordinates</h2>
+<h2 id="sec3">Section 3: Modular Projective Geometry in Jacobian Coordinates</h2>
 <h3>3.1 Mapping Transformation</h3>
 <p>To eliminate costly modular inversions in field calculations over prime fields F_p (where p &gt; 3), affine coordinates (x, y) in F_p^2 are mapped to Jacobian projective coordinates (X, Y, Z) in P^2(F_p) via:</p>
 <p>$$x = \frac{X}{Z^2}, \quad y = \frac{Y}{Z^3} \quad (Z \neq 0)$$</p>
@@ -106,7 +117,7 @@ def compute_torsional_displacement(path_nodes, connection_matrix, modulus):
 <li>Z_3 = ((Z_1 + Z_2)^2 - Z_1^2 - Z_2^2) * H | cost: 1M + 1S + 3A</li>
 </ul>
 <p>Total Complexity: 12M + 7S + 11A where M denotes multiplication, S squaring, A addition/subtraction, and D doubling.</p>
-<h2>Section 4: Discrete Lattice Constructions</h2>
+<h2 id="sec4">Section 4: Discrete Lattice Constructions</h2>
 <h3>4.1 E_8 and Leech Lattice Field Realizations</h3>
 <p>The E_8 lattice Gamma_8 subset R^8 is defined as the set of vectors x in R^8 union (R + 1/2)^8 such that sum x_i = 0 mod 2. Over a finite field F_q, its generator matrix M_{E_8} is:</p>
 <p>Row 1:  2    0    0    0    0    0    0    0 Row 2: -1    1    0    0    0    0    0    0 Row 3:  0   -1    1    0    0    0    0    0 Row 4:  0    0   -1    1    0    0    0    0 Row 5:  0    0    0   -1    1    0    0    0 Row 6:  0    0    0    0   -1    1    0    0 Row 7:  0    0    0    0    0   -1    1    0 Row 8: 1/2  1/2  1/2  1/2  1/2  1/2  1/2  1/2</p>
@@ -138,13 +149,31 @@ def modular_lll_reduce(basis, modulus, delta=0.75):
             k = max(k - 1, 1)
     return basis
 </code></pre>
-<h2>Section 5: Axiomatic Field Unification Matrix</h2>
+<h2 id="sec5">Section 5: Axiomatic Field Unification Matrix</h2>
 <p>The theoretical framework across Chapters 1 through 250 converges on the unified field mappings summarized below:</p>
 <p>Continuous Manifold M --(pi_n)--&gt; Z_n^d --(Jac)--&gt; P^2(F_p)         | Torsion T                | Shift                  | Lattice         v                          v                        v      T_p M --(g)--&gt; T_p M_{Z_n} --(M_{E_8})--&gt; Leech Lattice</p>
 <p>Theorem 5.1 (Field Unification Consistency). The mapping sequence pi_n o Jac o M_{E_8} forms a commutative diagram under the invariant scalar action k . P (mod n), preserving discrete geodesic structures across arbitrary cyclic ring dimensions d &gt;= 8.</p>
 <p>Proof. Follows directly from the homomorphic property of pi_n over T_p M_{Z_n} and the complete addition invariance established in Theorem 1.1 and Section 3.2. QED</p>
+<h2 id="sec6">Section 6: Worked Example - Jacobian Doubling over a Toy Field</h2>
+<h3>6.1 Setup</h3>
+<p>To make the projective formulas concrete, we double a point on the toy curve $$E: y^2 = x^3 + 2x + 2 \pmod{17}.$$ The point $P = (5, 16)$ lies on $E$, since $16^2 = 256 \equiv 1$ and $5^3 + 2\cdot 5 + 2 = 137 \equiv 1 \pmod{17}$.</p>
+<h3>6.2 Affine doubling (reference)</h3>
+<p>The tangent slope at $P$ is $$s = \frac{3x_1^2 + a}{2y_1} = \frac{77}{32} \equiv 4 \pmod{17},$$ giving $$x_{2P} = s^2 - 2x_1 = 16 - 10 \equiv 6, \qquad y_{2P} = s(x_1 - x_{2P}) - y_1 = 4(5-6) - 16 \equiv 14 \pmod{17}.$$ So $2P = (6, 14)$, and indeed $14^2 = 196 \equiv 9$ while $6^3 + 2\cdot 6 + 2 = 230 \equiv 9 \pmod{17}$.</p>
+<h3>6.3 The same doubling in Jacobian coordinates</h3>
+<p>Write $P$ as $(X_1, Y_1, Z_1) = (5, 16, 1)$. The standard Jacobian doubling sequence runs:</p>
+<ul>
+<li>$XX = X_1^2 = 25 \equiv 8$, $YY = Y_1^2 = 256 \equiv 1$, $YYYY = YY^2 = 1$</li>
+<li>$S = 2\big((X_1 + YY)^2 - XX - YYYY\big) = 2(36 - 8 - 1) = 54 \equiv 3$</li>
+<li>$M = 3\cdot XX + a = 24 + 2 = 26 \equiv 9$ (here $Z_1 = 1$, so the $aZ_1^4$ term is just $a$)</li>
+<li>$T = M^2 - 2S = 81 - 6 = 75 \equiv 7$</li>
+<li>$X_3 = T = 7$</li>
+<li>$Y_3 = M(S - T) - 8\cdot YYYY = 9(3 - 7) - 8 = -44 \equiv 7$</li>
+<li>$Z_3 = (Y_1 + Z_1)^2 - YY - Z_1^2 = 289 - 1 - 1 = 287 \equiv 15$</li>
+</ul>
+<p>Converting back, $x = X_3/Z_3^2 = 7 \cdot 15^{-2} \equiv 6$ and $y = Y_3/Z_3^3 = 7 \cdot 15^{-3} \equiv 14 \pmod{17}$, exactly the affine result $(6, 14)$. No modular inverse was needed until the final conversion.</p>
+<nav class="volnav"><span></span><a href="volume-2.html">Volume II: Computational Architecture &amp; Acceleration &rarr;</a></nav>
 </main>
-<footer>Coin Space Math &mdash; Jay Omer</footer>
+<footer>Coin Space Math &middot; Jay Omer</footer>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   renderMathInElement(document.body, {
