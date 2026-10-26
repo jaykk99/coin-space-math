@@ -1,3 +1,5 @@
+Live: https://jaykk99.github.io/coin-space-math/
+
 # Coin Space Math (CSM)
 
 An interactive treatise on secp256k1 elliptic-curve math: continuous coordinate projections, Jacobian arithmetic, lattice reduction (LLL/BKZ, Babai), and an in-browser scalar multiplication engine.
