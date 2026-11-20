@@ -23,3 +23,7 @@ python3 -m http.server
 ```
 
 Static HTML only. Math rendering uses KaTeX from the jsDelivr CDN, so the volume pages need internet for typeset formulas.
+
+## Runtime and research limitations
+
+This is a static browser demonstration, not a hosted Python execution service. The interactive scalar-arithmetic examples run in the browser; any Python snippets shown are reference material and are not executed by a Python interpreter on the site. The visualizations and chapter text are educational and do not establish a practical method to recover secp256k1 private keys. Volume IV remains unpublished. External CDN dependencies require connectivity, so the complete presentation is not fully offline-capable.
