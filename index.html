@@ -313,11 +313,30 @@ class CSMPointJacobian:
         z_inv = pow(self.Z, P - 2, P)
         return ((self.X * z_inv**2) % P, (self.Y * z_inv**3) % P)
 
+def csm_double(p1):
+    # Jacobian point doubling (a = 0 curve)
+    XX, YY = (p1.X**2) % P, (p1.Y**2) % P
+    YYYY, ZZ = (YY**2) % P, (p1.Z**2) % P
+    S = (2 * ((p1.X + YY)**2 - XX - YYYY)) % P
+    M = (3 * XX) % P
+    T = (M**2 - 2 * S) % P
+    X3 = T
+    Y3 = (M * (S - T) - 8 * YYYY) % P
+    Z3 = ((p1.Y + p1.Z)**2 - YY - ZZ) % P
+    return CSMPointJacobian(X3, Y3, Z3)
+
 def csm_add(p1, p2):
-    # Complete 12-Step Unrolled Jacobian Addition
+    # Complete Jacobian addition: handles the point at infinity,
+    # doubling (P + P) and inverses (P + (-P)) instead of
+    # silently returning (0, 0, 0) for those cases.
+    if p1.Z == 0: return p2
+    if p2.Z == 0: return p1
     Z1_2, Z2_2 = (p1.Z**2) % P, (p2.Z**2) % P
     U1, U2 = (p1.X * Z2_2) % P, (p2.X * Z1_2) % P
     S1, S2 = (p1.Y * p2.Z * Z2_2) % P, (p2.Y * p1.Z * Z1_2) % P
+    if U1 == U2:
+        if S1 != S2: return CSMPointJacobian(0, 0, 0)  # P + (-P) = O
+        return csm_double(p1)  # P + P
     H = (U2 - U1) % P
     I = (2*H)**2 % P
     J = (H * I) % P
@@ -326,7 +345,17 @@ def csm_add(p1, p2):
     X3 = (r**2 - J - 2*V) % P
     Y3 = (r*(V - X3) - 2*S1*J) % P
     Z3 = (((p1.Z + p2.Z)**2 - Z1_2 - Z2_2) * H) % P
-    return CSMPointJacobian(X3, Y3, Z3)</code></pre>
+    return CSMPointJacobian(X3, Y3, Z3)
+
+def csm_mul(k, point):
+    # Deterministic binary double-and-add scalar multiplication
+    result = CSMPointJacobian(0, 0, 0)
+    addend = point
+    while k > 0:
+        if k & 1: result = csm_add(result, addend)
+        addend = csm_double(addend)
+        k >>= 1
+    return result</code></pre>
                 </div>
             </div>
         </section>
@@ -455,6 +484,7 @@ def csm_add(p1, p2):
         window.addEventListener('hashchange', () => switchTab(tabFromHash()));
 
         function initOverviewChart() {
+            if (typeof Chart === 'undefined') return; // charts are optional: page must work without the CDN
             const ctx = document.getElementById('overviewChart').getContext('2d');
             overviewChart = new Chart(ctx, {
                 type: 'bar',
@@ -487,6 +517,7 @@ def csm_add(p1, p2):
         }
 
         function initLatticeChart() {
+            if (typeof Chart === 'undefined') return; // charts are optional: page must work without the CDN
             const ctx = document.getElementById('latticeChart').getContext('2d');
             latticeChart = new Chart(ctx, {
                 type: 'line',
@@ -622,9 +653,90 @@ def csm_add(p1, p2):
                 <div>[+] Babai Closest Vector Offset: <span class="text-emerald-400">k0 = ${babaiOffset}</span></div>
             `;
 
-            // Dynamic Chart update
-            latticeChart.data.datasets[0].data = [det, det * 0.7, det * 0.4, det * 0.25, Math.abs(qx - babaiOffset)];
-            latticeChart.update();
+            // Dynamic Chart update (skipped when Chart.js failed to load)
+            if (latticeChart) {
+                latticeChart.data.datasets[0].data = [det, det * 0.7, det * 0.4, det * 0.25, Math.abs(qx - babaiOffset)];
+                latticeChart.update();
+            }
+        }
+
+        // --- Real secp256k1 scalar multiplication (Jacobian, BigInt) ---
+        // The engine used to print a linear map of the scalar and claim the
+        // point was verified on the curve; it never was. This computes the
+        // real k*G with double-and-add and checks y^2 == x^3 + 7 (mod p).
+        const CSM_P = BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
+        const CSM_N = BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141");
+        const CSM_G = {
+            X: BigInt("0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"),
+            Y: BigInt("0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"),
+            Z: 1n
+        };
+        const CSM_INFINITY = { X: 0n, Y: 0n, Z: 0n };
+        function csmMod(a) { const r = a % CSM_P; return r >= 0n ? r : r + CSM_P; }
+        function csmJacDouble(pt) {
+            if (pt.Z === 0n) return CSM_INFINITY;
+            const xx = csmMod(pt.X * pt.X);
+            const yy = csmMod(pt.Y * pt.Y);
+            const yyyy = csmMod(yy * yy);
+            const zz = csmMod(pt.Z * pt.Z);
+            const s = csmMod(2n * (csmMod((pt.X + yy) * (pt.X + yy)) - xx - yyyy));
+            const m = csmMod(3n * xx);
+            const t = csmMod(m * m - 2n * s);
+            return {
+                X: t,
+                Y: csmMod(m * (s - t) - 8n * yyyy),
+                Z: csmMod((pt.Y + pt.Z) * (pt.Y + pt.Z) - yy - zz)
+            };
+        }
+        function csmJacAdd(p1, p2) {
+            if (p1.Z === 0n) return p2;
+            if (p2.Z === 0n) return p1;
+            const z1z1 = csmMod(p1.Z * p1.Z);
+            const z2z2 = csmMod(p2.Z * p2.Z);
+            const u1 = csmMod(p1.X * z2z2);
+            const u2 = csmMod(p2.X * z1z1);
+            const s1 = csmMod(p1.Y * p2.Z * z2z2);
+            const s2 = csmMod(p2.Y * p1.Z * z1z1);
+            if (u1 === u2) {
+                if (s1 !== s2) return CSM_INFINITY; // P + (-P)
+                return csmJacDouble(p1); // P + P
+            }
+            const h = csmMod(u2 - u1);
+            const i = csmMod((2n * h) * (2n * h));
+            const j = csmMod(h * i);
+            const r = csmMod(2n * (s2 - s1));
+            const v = csmMod(u1 * i);
+            const x3 = csmMod(r * r - j - 2n * v);
+            return {
+                X: x3,
+                Y: csmMod(r * (v - x3) - 2n * s1 * j),
+                Z: csmMod(((p1.Z + p2.Z) * (p1.Z + p2.Z) - z1z1 - z2z2) * h)
+            };
+        }
+        function csmJacToAffine(pt) {
+            if (pt.Z === 0n) return null;
+            const zInv = csmModPow(pt.Z, CSM_P - 2n);
+            return [csmMod(pt.X * zInv * zInv), csmMod(pt.Y * zInv * zInv * zInv)];
+        }
+        function csmModPow(base, exp) {
+            let result = 1n;
+            let b = csmMod(base);
+            while (exp > 0n) {
+                if (exp & 1n) result = csmMod(result * b);
+                b = csmMod(b * b);
+                exp >>= 1n;
+            }
+            return result;
+        }
+        function csmScalarMult(k) {
+            let result = CSM_INFINITY;
+            let addend = CSM_G;
+            while (k > 0n) {
+                if (k & 1n) result = csmJacAdd(result, addend);
+                addend = csmJacDouble(addend);
+                k >>= 1n;
+            }
+            return result;
         }
 
         // --- Python Engine Simulation ---
@@ -639,24 +751,31 @@ def csm_add(p1, p2):
                 return;
             }
             let decimalScalar = BigInt(inputVal);
-            if (decimalScalar <= 0 || decimalScalar >= (1n << 256n)) {
+            if (decimalScalar <= 0n || decimalScalar >= CSM_N) {
                 consoleEl.innerHTML = `
-                    <div class="text-red-400">[x] Scalar out of range: must be between 1 and 2^256 - 1.</div>
+                    <div class="text-red-400">[x] Scalar out of range: must be between 1 and n - 1 (n = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141).</div>
                 `;
                 return;
             }
 
-            // Simplified secp256k1 affine simulation coordinates
-            const pMod = BigInt("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
-            const calculatedX = (decimalScalar * BigInt("0x79BE667E") + BigInt(7)) % pMod;
-            const calculatedY = (decimalScalar * BigInt("0x483ADA77") + BigInt(13)) % pMod;
+            const affine = csmJacToAffine(csmScalarMult(decimalScalar));
+            if (!affine) {
+                consoleEl.innerHTML = `
+                    <div class="text-red-400">[x] Scalar multiplication returned the point at infinity; no affine point exists.</div>
+                `;
+                return;
+            }
+            const [calculatedX, calculatedY] = affine;
+            const onCurve = csmMod(calculatedY * calculatedY - (calculatedX * calculatedX * calculatedX + 7n)) === 0n;
 
             consoleEl.innerHTML = `
                 <div class="text-emerald-400">[+] CSM Engine Execution Complete.</div>
                 <div>Target Private Scalar : <span class="text-cyan-400">${inputVal}</span></div>
                 <div>Computed Affine X     : <span class="text-amber-300">0x${calculatedX.toString(16).toUpperCase().padStart(64, '0')}</span></div>
                 <div>Computed Affine Y     : <span class="text-amber-300">0x${calculatedY.toString(16).toUpperCase().padStart(64, '0')}</span></div>
-                <div class="text-slate-500 mt-1">// Point verified on curve: y² ≡ x³ + 7 (mod p)</div>
+                ${onCurve
+                    ? '<div class="text-slate-500 mt-1">// Point verified on curve: y² ≡ x³ + 7 (mod p)</div>'
+                    : '<div class="text-red-400 mt-1">// WARNING: computed point is NOT on the curve — engine error, do not use.</div>'}
             `;
         }
 

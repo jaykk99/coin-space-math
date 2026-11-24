@@ -15,6 +15,17 @@ Live: https://jaykk99.github.io/coin-space-math/
 
 Volume IV (Ch. 751-1000) is planned and not published yet.
 
+## Tests
+
+```bash
+node test/verify.cjs   # 20 checks, no dependencies
+```
+
+Loads the real page script into a stub DOM and checks the engine computes
+the true k·G (verified against known secp256k1 vectors), scalar range
+rejection, Chart.js-missing resilience, lattice output, chapter search /
+volume filter, and tab switching.
+
 ## Run locally
 
 ```bash
